@@ -304,8 +304,10 @@
   window.addEventListener("hashchange", () => { if (!viewer.hidden) { viewer.hidden = true; vstrip.innerHTML = ""; } route(); });
   if (tg && tg.BackButton) tg.BackButton.onClick(() => { haptic(); if (!viewer.hidden) return closeViewer(); history.length > 1 ? history.back() : (location.hash = "#/"); });
 
-  // старт: параметр startapp из ссылки t.me/bot/app?startapp=cosm или ?n=cosm
+  // старт: параметр startapp из ссылки t.me/bot/app?startapp=cosm | stom | cosm_buy | stom_buy (или ?n=… в браузере).
+  // *_buy приходит с кнопок «Купить» на лендингах: открываем нишу сразу на вкладке «Купить».
   const sp = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || new URLSearchParams(location.search).get("n");
-  if (!location.hash && sp && H.niches[sp]) location.hash = `#/n/${sp}`;
+  const [spN, spT] = String(sp || "").split("_");
+  if (!location.hash && H.niches[spN]) location.hash = `#/n/${spN}${spT === "buy" ? "/buy" : ""}`;
   route();
 })();
