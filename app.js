@@ -44,7 +44,7 @@
     if (tg && inTg && tg.MainButton) {
       if (mainHandler) tg.MainButton.offClick(mainHandler);
       if (!cfg) { tg.MainButton.hide(); return; }
-      mainHandler = () => cfg.go ? (location.hash = cfg.go) : openLink(cfg.url);
+      mainHandler = () => cfg.go ? (location.hash = cfg.go) : cfg.pay ? payInChat(cfg.pay, cfg.url) : openLink(cfg.url);
       tg.MainButton.setParams({ text: cfg.text, color: cfg.color || "#141116", text_color: "#ffffff", is_visible: true });
       tg.MainButton.onClick(mainHandler);
       return;
@@ -55,6 +55,35 @@
     d.innerHTML = `<div class="in"><a class="btn" ${cfg.go ? `data-go="${cfg.go}"` : `data-link="${esc(cfg.url)}"`} href="#">${esc(cfg.text)}${cfg.old ? ` <s>${esc(cfg.old)}</s>` : ""}</a>${cfg.ask ? `<a class="btn ghost" data-link="https://t.me/${H.contact}" href="#" aria-label="Задать вопрос">💬</a>` : ""}</div>`;
     document.body.appendChild(d);
   }
+  // «Купить»: бот сам присылает оплату в чат, приложение просит перейти в чат.
+  // Если бот ещё не может писать человеку, просим разрешение, иначе открываем бота с параметром hub_*.
+  const PAY_API = "https://smilesalesbot.smilesalesbot.workers.dev/app/pay";
+  let paying = false;
+  function payInChat(niche, fallbackUrl) {
+    if (!tg || !inTg || !tg.initData) return openLink(fallbackUrl);
+    if (paying) return; paying = true;
+    haptic("medium");
+    try { tg.MainButton.showProgress(false); } catch (e) {}
+    const done = () => { paying = false; try { tg.MainButton.hideProgress(); } catch (e) {} };
+    const call = () => fetch(PAY_API, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ initData: tg.initData, niche }) }).then((r) => r.json());
+    const sent = () => {
+      done();
+      try { tg.HapticFeedback && tg.HapticFeedback.notificationOccurred("success"); } catch (e) {}
+      const go = () => tg.openTelegramLink(`https://t.me/${H.bot}`);
+      try {
+        tg.showPopup({ title: "Ссылка на оплату в чате", message: `Мы отправили ссылку на оплату в чат с ботом @${H.bot}. Перейдите в чат и оплатите: доступ к папке придёт туда же сразу после оплаты.`, buttons: [{ id: "go", type: "default", text: "Перейти в чат" }, { type: "close" }] }, (id) => { if (id === "go") go(); });
+      } catch (e) { go(); }
+    };
+    const fallback = () => { done(); openLink(fallbackUrl); };
+    call().then((j) => {
+      if (j && j.ok) return sent();
+      if (j && j.error === "need_start" && tg.requestWriteAccess) {
+        return tg.requestWriteAccess((allowed) => { if (!allowed) return fallback(); call().then((k) => (k && k.ok ? sent() : fallback())).catch(fallback); });
+      }
+      fallback();
+    }).catch(fallback);
+  }
+
   function setBack(on) {
     if (!tg || !inTg || !tg.BackButton) return;
     if (on) tg.BackButton.show(); else tg.BackButton.hide();
@@ -175,7 +204,7 @@
       <p class="disc">Ориентиры для клиник, где схема внедрена вместе с перестройкой процесса. Не гарантия.</p>
       <div style="margin:16px"><a class="btn light" data-link="${esc(n.landing)}" href="#">Полное описание на сайте ›</a></div>`;
     if (tab === "reviews") body = `${sec("Клиники о работе с Дмитрием")}${reviews()}${authorBlock()}`;
-    if (tab === "buy") body = `${sec("Как купить")}<div class="block"><ol class="steps"><li>Нажимаете «Купить», открывается бот @${H.bot}</li><li>В боте «Оплатить», оплата картой через Tribute</li><li>Доступ к папке приходит сразу в Telegram</li></ol></div>`;
+    if (tab === "buy") body = `${sec("Как купить")}<div class="block"><ol class="steps"><li>Нажимаете «Купить»: ссылка на оплату приходит в чат с ботом @${H.bot}</li><li>Переходите в чат и оплачиваете картой через Tribute</li><li>Доступ к папке приходит туда же сразу после оплаты</li></ol></div>`;
     app.innerHTML = `<div class="screen">${top("#/")}
       <div class="nhero"><div class="img"><img src="${esc(n.cover)}" alt=""><span class="kk">${esc(n.title.toUpperCase())}</span></div>
         <div class="body"><h1>${esc(n.tagline)}</h1><p>${esc(n.pack)} + бонусы. Команда ведёт ${k === "cosm" ? "пациентку" : "пациента"} от заявки до оплаты по понятным шагам.</p>
@@ -184,7 +213,7 @@
       <div class="tabs">${tabs.map(([id, t]) => `<button class="${id === tab ? "on" : ""}" data-go="#/n/${k}/${id}">${t}</button>`).join("")}</div>
       ${body}
     </div>`;
-    setCTA({ text: `Купить папку · ${rub(n.price)}`, url: n.buy, color: n.accent, ask: true });
+    setCTA({ text: `Купить папку · ${rub(n.price)}`, url: n.buy, pay: k, color: n.accent, ask: true });
   }
 
   function Free() {

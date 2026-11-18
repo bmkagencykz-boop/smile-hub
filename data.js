@@ -33,7 +33,7 @@ window.HUB = {
       tagline: "Пациенты уходят «подумать» после консультации и не возвращаются",
       pack: "Регламент куратора + схема дожима",
       price: 8490, old: 24000, kzt: "≈ 46 700 ₸",
-      buy: "https://t.me/smilesalesbot?start=landing",
+      buy: "https://t.me/smilesalesbot?start=hub_stom",
       landing: "https://bmkagencykz-boop.github.io/shema-dozhima/",
       stats: [["19", "файлов"], ["370+", "страниц"], ["397", "пунктов аудита"]],
       main: [
@@ -78,7 +78,7 @@ window.HUB = {
       tagline: "Пациентки уходят «подумать» и не возвращаются на курс и повтор",
       pack: "Схема ведения + куратор",
       price: 7000, old: 22000, kzt: "≈ 38 500 ₸",
-      buy: "https://t.me/smilesalesbot?start=cosmo",
+      buy: "https://t.me/smilesalesbot?start=hub_cosm",
       landing: "https://bmkagencykz-boop.github.io/cosm-papka/",
       stats: [["17", "файлов"], ["279", "страниц"], ["318", "пунктов аудита"]],
       main: [
