@@ -55,7 +55,7 @@
     d.innerHTML = `<div class="in"><a class="btn" ${cfg.go ? `data-go="${cfg.go}"` : `data-link="${esc(cfg.url)}"`} href="#">${esc(cfg.text)}${cfg.old ? ` <s>${esc(cfg.old)}</s>` : ""}</a>${cfg.ask ? `<a class="btn ghost" data-link="https://t.me/${H.contact}" href="#" aria-label="Задать вопрос">💬</a>` : ""}</div>`;
     document.body.appendChild(d);
   }
-  // «Купить»: бот сам присылает оплату в чат, приложение просит перейти в чат.
+  // «Купить»: бот сам присылает реквизиты в чат, приложение просит перейти в чат и прислать туда чек.
   // Если бот ещё не может писать человеку, просим разрешение, иначе открываем бота с параметром hub_*.
   const PAY_API = "https://smilesalesbot.smilesalesbot.workers.dev/app/pay";
   let paying = false;
@@ -71,7 +71,7 @@
       try { tg.HapticFeedback && tg.HapticFeedback.notificationOccurred("success"); } catch (e) {}
       const go = () => tg.openTelegramLink(`https://t.me/${H.bot}`);
       try {
-        tg.showPopup({ title: "Ссылка на оплату в чате", message: `Мы отправили ссылку на оплату в чат с ботом @${H.bot}. Перейдите в чат и оплатите: доступ к папке придёт туда же сразу после оплаты.`, buttons: [{ id: "go", type: "default", text: "Перейти в чат" }, { type: "close" }] }, (id) => { if (id === "go") go(); });
+        tg.showPopup({ title: "Реквизиты в чате с ботом", message: `Мы отправили реквизиты для оплаты в чат с ботом @${H.bot}. Перейдите в чат, оплатите и пришлите туда чек: доступ к папке придёт в этот же чат.`, buttons: [{ id: "go", type: "default", text: "Перейти в чат" }, { type: "close" }] }, (id) => { if (id === "go") go(); });
       } catch (e) { go(); }
     };
     const fallback = () => { done(); openLink(fallbackUrl); };
@@ -204,12 +204,12 @@
       <p class="disc">Ориентиры для клиник, где схема внедрена вместе с перестройкой процесса. Не гарантия.</p>
       <div style="margin:16px"><a class="btn light" data-link="${esc(n.landing)}" href="#">Полное описание на сайте ›</a></div>`;
     if (tab === "reviews") body = `${sec("Клиники о работе с Дмитрием")}${reviews()}${authorBlock()}`;
-    if (tab === "buy") body = `${sec("Как купить")}<div class="block"><ol class="steps"><li>Нажимаете «Купить»: ссылка на оплату приходит в чат с ботом @${H.bot}</li><li>Переходите в чат и оплачиваете картой через Tribute</li><li>Доступ к папке приходит туда же сразу после оплаты</li></ol></div>`;
+    if (tab === "buy") body = `${sec("Как купить")}<div class="block"><ol class="steps"><li>Нажимаете «Купить»: реквизиты для оплаты приходят в чат с ботом @${H.bot}</li><li>Переводите оплату и присылаете в чат чек</li><li>После проверки чека доступ к папке приходит туда же</li></ol></div>`;
     app.innerHTML = `<div class="screen">${top("#/")}
       <div class="nhero"><div class="img"><img src="${esc(n.cover)}" alt=""><span class="kk">${esc(n.title.toUpperCase())}</span></div>
         <div class="body"><h1>${esc(n.tagline)}</h1><p>${esc(n.pack)} + бонусы. Команда ведёт ${k === "cosm" ? "пациентку" : "пациента"} от заявки до оплаты по понятным шагам.</p>
         <div class="nstats">${n.stats.map(([v, t]) => `<span><b>${esc(v)}</b> ${esc(t)}</span>`).join("")}</div>
-        <div class="pricebox"><span class="now">${rub(n.price)}</span><s>${rub(n.old)}</s><span class="off">−${pct(n)}%</span><span class="kzt">${esc(n.kzt)} · доступ сразу после оплаты</span></div></div></div>
+        <div class="pricebox"><span class="now">${rub(n.price)}</span><s>${rub(n.old)}</s><span class="off">−${pct(n)}%</span><span class="kzt">${esc(n.kzt)} · доступ после проверки чека</span></div></div></div>
       <div class="tabs">${tabs.map(([id, t]) => `<button class="${id === tab ? "on" : ""}" data-go="#/n/${k}/${id}">${t}</button>`).join("")}</div>
       ${body}
     </div>`;
